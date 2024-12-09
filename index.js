@@ -3,15 +3,11 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const fs = require('fs'); // File system module to interact with JSON file
 require('dotenv').config();
 
 // Setup the server
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// File path for storing user data
-const usersFilePath = './users.json';
 
 // Middleware
 app.use(cors());
@@ -26,23 +22,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// In-memory user storage
+let users = [];
+
 // Helper function to generate JWT
 const generateToken = (user) => {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET);
-};
-
-// Helper function to read users from the JSON file
-const readUsersFromFile = () => {
-  if (fs.existsSync(usersFilePath)) {
-    const data = fs.readFileSync(usersFilePath);
-    return JSON.parse(data);
-  }
-  return []; // Return an empty array if the file does not exist
-};
-
-// Helper function to write users to the JSON file
-const writeUsersToFile = (users) => {
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
 };
 
 // API Endpoint for Login/Signup
@@ -52,9 +37,6 @@ app.post('/api/login-or-signup', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
   }
-
-  // Read the users from the file
-  let users = readUsersFromFile();
 
   let user = users.find((user) => user.email === email);
 
@@ -70,9 +52,6 @@ app.post('/api/login-or-signup', (req, res) => {
     // User does not exist, create a new account
     user = { id: Date.now(), email, password };
     users.push(user);
-
-    // Save the new user to the file
-    writeUsersToFile(users);
 
     const token = generateToken(user);
     return res.json({ message: 'Account created successfully', token });
@@ -92,8 +71,6 @@ app.post('/api/checkout', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const email = decoded.email;
 
-    // Read the users from the file to get the user details
-    let users = readUsersFromFile();
     let user = users.find((user) => user.email === email);
 
     if (!user) {
@@ -120,7 +97,7 @@ app.post('/api/checkout', async (req, res) => {
 
     // Send the email with user and checkout details
     await transporter.sendMail({
-      from: `"Checkout System" <${process.env.RECEIVER_EMAIL}>`,
+      from: `"Checkout System" <${process.env.EMAIL}>`,
       to: process.env.RECEIVER_EMAIL, // The recipient email
       subject: 'New Checkout Details Submitted',
       html: emailBody,
