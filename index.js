@@ -46,7 +46,7 @@ const writeUsersToFile = (users) => {
 };
 
 // API Endpoint for Login/Signup
-app.post('/api/loginsignup', (req, res) => {
+app.post('/api/login-or-signup', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
